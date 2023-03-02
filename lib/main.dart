@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_crud_rest/screens/Home.dart';
+import 'package:flutter_crud_rest/screens/todo_list.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,16 +12,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      showSemanticsDebugger: false,
+      debugShowCheckedModeBanner: false,
       title: 'Flutter REST CRUD consuming',
-      initialRoute: '/',
-      routes: {
-        '/': (context) => Home(),
-      },
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      //home: Home(),
+      theme: ThemeData.dark(),
+      home: TodoListPage(),
     );
   }
 }
