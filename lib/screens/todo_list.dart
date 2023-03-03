@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_crud_rest/constants/constants.dart';
 import 'package:flutter_crud_rest/screens/add_page.dart';
 import 'package:http/http.dart' as http;
 
@@ -55,11 +56,11 @@ class _TodoListPageState extends State<TodoListPage> {
               itemCount: items.length,
               itemBuilder: (context, index){
                 final item  = items[index] as Map;
-                final id  = item['_id'] as String;
+                final id  = item['id'] as int;
                 return ListTile(
                   leading: CircleAvatar(child: Text("${index+1}"),),
-                  title: Text(item['title']),
-                  subtitle: Text(item['description']),
+                  title: Text(item['name']),
+                  subtitle: Text(item['age'].toString()),
                    trailing: PopupMenuButton(
                        itemBuilder: (context){
                          return [
@@ -79,7 +80,7 @@ class _TodoListPageState extends State<TodoListPage> {
                          }
                          else if (value == 'delete'){
                            //delete and remove the item
-                           deleteById(id);
+                           deleteById(id.toString());
                          }
                      },
                    ),
@@ -103,21 +104,23 @@ class _TodoListPageState extends State<TodoListPage> {
   }
 
   Future<void> fetchTodo() async {
-    final url = 'http://api.nstack.in/v1/todos?page=1&limit=10';
+    final url = Constants.BASE_URL+"/all";
     final uri = Uri.parse(url);
     final response = await http.get(
         uri,
         headers: {"accept":"application/json"}
     );
-    if(response.statusCode == 200){
-      final json = jsonDecode(response.body) as Map;
-      final result = json['items'] as List;
+    final json = jsonDecode(response.body) as Map;
+    //print(json['code']);
+
+    if(json['code'] == 200){
+      final result = json['data'] as List;
 
       setState(() {
         items = result;
       });
 
-      print("----->SUCCESS RESPONSE, ALL TODOS: ${response.body}");
+      print("----->SUCCESS RESPONSE, ALL TODOS: ${result}");
 
     }
     else{
@@ -133,7 +136,7 @@ class _TodoListPageState extends State<TodoListPage> {
 
   Future<void> deleteById(String id) async {
     //delete item
-    final url = 'http://api.nstack.in/v1/todos/$id';
+    final url = '${Constants.BASE_URL}/delete/$id';
     final uri = Uri.parse(url);
     final response = await http.delete(
         uri,

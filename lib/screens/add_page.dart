@@ -5,6 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../constants/constants.dart';
+
 class AddTodoPage extends StatefulWidget {
   const AddTodoPage({Key? key}) : super(key: key);
 
@@ -15,6 +17,7 @@ class AddTodoPage extends StatefulWidget {
 class _AddTodoPageState extends State<AddTodoPage> {
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
+  TextEditingController ageController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +40,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
           TextField(
             controller: titleController,
             decoration: InputDecoration(
-              hintText: 'Title',
+              hintText: 'Name',
             ),
           ),
           SizedBox(height: 20,),
@@ -48,6 +51,13 @@ class _AddTodoPageState extends State<AddTodoPage> {
             keyboardType: TextInputType.multiline,
             minLines: 5,
             maxLines: 8,
+          ),
+          SizedBox(height: 20,),
+          TextField(
+            controller: ageController,
+            decoration: InputDecoration(
+              hintText: 'Age',),
+            keyboardType: TextInputType.number,
           ),
           SizedBox(height: 20,),
           ElevatedButton(
@@ -63,37 +73,59 @@ class _AddTodoPageState extends State<AddTodoPage> {
 
   Future<void> submitData() async {
     //get data from form
-    final title  = titleController.text;
+    final name  = titleController.text;
     final description  = descriptionController.text;
+    final age  = ageController.text;
 
     final body = {
-      "title": title,
-      "description": description,
-      "is_completed": false
+      "name": name,
+      "age": age,
     };
 
     //submit the data to the server.
-    final url = 'http://api.nstack.in/v1/todos';
+    //final url = 'http://api.nstack.in/v1/todos';
+    final url = '${Constants.BASE_URL}/create';
     final uri = Uri.parse(url);
     final response = await http.post(
         uri,
         body: jsonEncode(body),
-        // headers: {"accept":"application/json", "Content-Type":"application/json"}
+        headers: {"accept":"application/json", "Content-Type":"application/json"}
     );
 
     try{
-      //show success or fail message based on status
-      if(response.statusCode == 201){
-        //clear UI
-        titleController.clear();
-        descriptionController.clear();
+      // //show success or fail message based on status
+      // if(response.statusCode == 201){
+      //   //clear UI
+      //   titleController.clear();
+      //   descriptionController.clear();
+      //   ageController.clear();
+      //
+      //   print("----->SUCCESS RESPONSE: ${response.body}");
+      //   showSuccessMessage('Creation of $title Success');
+      // }
+      // else{
+      //   showErrorMessage("Error occurred while creating.");
+      //   print("----->ERROR: Data creation failed");
+      // }
+      final json = jsonDecode(response.body) as Map;
+      print(json['code']);
 
-        print("----->SUCCESS RESPONSE: ${response.body}");
-        showSuccessMessage('Creation of $title Success');
+      if(json['code'] == 201){
+        //   //clear UI
+          titleController.clear();
+          descriptionController.clear();
+          ageController.clear();
+
+        final result = json['data'] as Map;
+
+        showSuccessMessage('Creation of $name Success');
+        print("----->SUCCESS RESPONSE, ADDED STUDENT: ${result}");
+
       }
       else{
         showErrorMessage("Error occurred while creating.");
         print("----->ERROR: Data creation failed");
+
       }
     }
     catch(e){
