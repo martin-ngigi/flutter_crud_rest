@@ -20,7 +20,8 @@ class TodoListPage extends StatefulWidget {
 }
 
 class _TodoListPageState extends State<TodoListPage> {
-List items =[];
+  bool isLoading = true;
+  List items =[];
   @override
   void initState() {
     // TODO: implement initState
@@ -43,17 +44,49 @@ List items =[];
         centerTitle: true,
         //backgroundColor: Colors.grey,
       ),
-      body: ListView.builder(
-          itemCount: items.length,
-          itemBuilder: (context, index){
-            final item  = items[index] as Map;
-            return ListTile(
-              leading: CircleAvatar(child: Text("${index+1}"),),
-              title: Text(item['title']),
-              subtitle: Text(item['description']),
-              // trailing: ,
-            );
-          }
+      body: Visibility(
+        visible: isLoading,
+        child: Center(child: CircularProgressIndicator(),),
+        replacement: RefreshIndicator(
+          onRefresh: (){
+            return fetchTodo();
+          },
+          child: ListView.builder(
+              itemCount: items.length,
+              itemBuilder: (context, index){
+                final item  = items[index] as Map;
+                final id  = item['_id'] as String;
+                return ListTile(
+                  leading: CircleAvatar(child: Text("${index+1}"),),
+                  title: Text(item['title']),
+                  subtitle: Text(item['description']),
+                   trailing: PopupMenuButton(
+                       itemBuilder: (context){
+                         return [
+                           PopupMenuItem(
+                             child: Text("Edit"),
+                             value: "Edit",
+                           ),
+                           PopupMenuItem(
+                             child: Text("Delete"),
+                             value: "delete",
+                           ),
+                         ];
+                       },
+                     onSelected: (value){
+                         if(value == 'edit' ){
+
+                         }
+                         else if (value == 'delete'){
+                           //delete and remove the item
+                           deleteById(id);
+                         }
+                     },
+                   ),
+                );
+              }
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: (){navigateToAddPage();},
@@ -77,7 +110,7 @@ List items =[];
         headers: {"accept":"application/json"}
     );
     if(response.statusCode == 200){
-      final json = jsonDecode(response.body);
+      final json = jsonDecode(response.body) as Map;
       final result = json['items'] as List;
 
       setState(() {
@@ -92,5 +125,34 @@ List items =[];
 
     }
 
+    setState(() {
+      isLoading = false;
+    });
+
+  }
+
+  Future<void> deleteById(String id) async {
+    //delete item
+    final url = 'http://api.nstack.in/v1/todos/$id';
+    final uri = Uri.parse(url);
+    final response = await http.delete(
+        uri,
+        headers: {"accept":"application/json"}
+    );
+    if(response.statusCode == 200){
+      //show all items apart from item which id is not egual to deletef item
+      final filtered = items.where((element) => element['_id'] != id).toList();
+      setState(() {
+        items = filtered;
+      });
+
+      print("----->SUCCESS RESPONSE, TODO DELETED");
+
+    }
+    else{
+      print("-----> ERROR OCCURRED WHILE DELETING TODO");
+
+    }
+    //remove the item from list
   }
 }
