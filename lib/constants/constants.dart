@@ -1,3 +1,3 @@
 class Constants{
-  static const String BASE_URL = "https://890f-154-78-226-61.eu.ngrok.io/api";
+  static const String BASE_URL = "https://1131-196-202-223-201.eu.ngrok.io/api";
 }

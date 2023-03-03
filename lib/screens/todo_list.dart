@@ -80,7 +80,7 @@ class _TodoListPageState extends State<TodoListPage> {
                          }
                          else if (value == 'delete'){
                            //delete and remove the item
-                           deleteById(id.toString());
+                           deleteById(id);
                          }
                      },
                    ),
@@ -134,7 +134,7 @@ class _TodoListPageState extends State<TodoListPage> {
 
   }
 
-  Future<void> deleteById(String id) async {
+  Future<void> deleteById(int id) async {
     //delete item
     final url = '${Constants.BASE_URL}/delete/$id';
     final uri = Uri.parse(url);
@@ -142,9 +142,12 @@ class _TodoListPageState extends State<TodoListPage> {
         uri,
         headers: {"accept":"application/json"}
     );
-    if(response.statusCode == 200){
+    final json = jsonDecode(response.body) as Map;
+    print(json['code']);
+
+    if(json['code'] == 200){
       //show all items apart from item which id is not egual to deletef item
-      final filtered = items.where((element) => element['_id'] != id).toList();
+      final filtered = items.where((element) => element['id'] != id).toList();
       setState(() {
         items = filtered;
       });

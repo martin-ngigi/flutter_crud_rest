@@ -93,20 +93,6 @@ class _AddTodoPageState extends State<AddTodoPage> {
     );
 
     try{
-      // //show success or fail message based on status
-      // if(response.statusCode == 201){
-      //   //clear UI
-      //   titleController.clear();
-      //   descriptionController.clear();
-      //   ageController.clear();
-      //
-      //   print("----->SUCCESS RESPONSE: ${response.body}");
-      //   showSuccessMessage('Creation of $title Success');
-      // }
-      // else{
-      //   showErrorMessage("Error occurred while creating.");
-      //   print("----->ERROR: Data creation failed");
-      // }
       final json = jsonDecode(response.body) as Map;
       print(json['code']);
 
