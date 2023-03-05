@@ -96,11 +96,16 @@ class _TodoListPageState extends State<TodoListPage> {
     );
   }
 
-  void navigateToAddPage(){
+  Future<void> navigateToAddPage() async {
     final route = MaterialPageRoute(
       builder: (context ) => AddTodoPage(),
     );
-    Navigator.push(context, route);
+    await Navigator.push(context, route);
+    //refresh page after adding
+    setState(() {
+      isLoading =true;
+    });
+    fetchTodo();
   }
 
   Future<void> fetchTodo() async {
@@ -152,13 +157,31 @@ class _TodoListPageState extends State<TodoListPage> {
         items = filtered;
       });
 
-      print("----->SUCCESS RESPONSE, TODO DELETED");
+      showSuccessMessage("SUCCESS RESPONSE, STUDENT DELETED");
+      print("----->SUCCESS RESPONSE, STUDENT DELETED");
 
     }
     else{
-      print("-----> ERROR OCCURRED WHILE DELETING TODO");
+      showErrorMessage("ERROR OCCURRED WHILE DELETING STUDENT");
+      print("-----> ERROR OCCURRED WHILE DELETING STUDENT");
 
     }
     //remove the item from list
+  }
+
+  void showSuccessMessage(String message){
+    final snackBar = SnackBar(content: Text(message));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  void showErrorMessage(String message){
+    final snackBar = SnackBar(
+      content: Text(
+        message,
+        style: TextStyle(color: Colors.white),
+      ),
+      backgroundColor: Colors.red,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }
