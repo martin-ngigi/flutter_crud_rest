@@ -35,10 +35,10 @@ class _TodoListPageState extends State<TodoListPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Todo App',
+          'REST CRUD (Pull down to refresh)',
           style: TextStyle(
               color: Colors.white,
-              fontSize: 27,
+              fontSize: 15,
               fontWeight: FontWeight.bold
           ),
         ),
@@ -61,29 +61,30 @@ class _TodoListPageState extends State<TodoListPage> {
                   leading: CircleAvatar(child: Text("${index+1}"),),
                   title: Text(item['name']),
                   subtitle: Text(item['age'].toString()),
-                   trailing: PopupMenuButton(
-                       itemBuilder: (context){
-                         return [
-                           PopupMenuItem(
-                             child: Text("Edit"),
-                             value: "Edit",
-                           ),
-                           PopupMenuItem(
-                             child: Text("Delete"),
-                             value: "delete",
-                           ),
-                         ];
-                       },
-                     onSelected: (value){
-                         if(value == 'edit' ){
-
-                         }
-                         else if (value == 'delete'){
-                           //delete and remove the item
-                           deleteById(id);
-                         }
-                     },
-                   ),
+                  trailing: PopupMenuButton(
+                    itemBuilder: (context){
+                      return [
+                        PopupMenuItem(
+                          child: Text("Edit"),
+                          value: "edit",
+                        ),
+                        PopupMenuItem(
+                          child: Text("Delete"),
+                          value: "delete",
+                        ),
+                      ];
+                    },
+                    onSelected: (value){
+                      if(value == 'edit' ){
+                        //navigate to edit page
+                        navigateToEditPage(item);
+                      }
+                      else if (value == 'delete'){
+                        //delete and remove the item
+                        deleteById(id);
+                      }
+                    },
+                  ),
                 );
               }
           ),
@@ -94,6 +95,18 @@ class _TodoListPageState extends State<TodoListPage> {
         label: Text("Add Todo"),
       ),
     );
+  }
+
+  Future<void> navigateToEditPage(Map item) async {
+    final route = MaterialPageRoute(
+      builder: (context ) => AddTodoPage(student: item),
+    );
+    await Navigator.push(context, route);
+    //refresh page after adding
+    setState(() {
+      isLoading =true;
+    });
+    fetchTodo();
   }
 
   Future<void> navigateToAddPage() async {

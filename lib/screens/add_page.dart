@@ -8,7 +8,8 @@ import 'package:http/http.dart' as http;
 import '../constants/constants.dart';
 
 class AddTodoPage extends StatefulWidget {
-  const AddTodoPage({Key? key}) : super(key: key);
+  Map? student;
+  AddTodoPage({Key? key, this.student}) : super(key: key);
 
   @override
   State<AddTodoPage> createState() => _AddTodoPageState();
@@ -18,13 +19,35 @@ class _AddTodoPageState extends State<AddTodoPage> {
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   TextEditingController ageController = TextEditingController();
+  bool isEdit = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    final student  =widget.student;
+    if(student != null){
+      isEdit = true;
+
+      //get data
+      final name = student['name'];
+      final age = student['age'] as int;
+
+      //set data
+      titleController.text = name;
+      ageController.text = '$age';
+
+
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Add Todo',
+          isEdit? "Edit Student": 'Add Student', // if isEdit=true set title as "Edit student, else set title as "Add student"
           style: TextStyle(
               color: Colors.white,
               fontSize: 27,
@@ -62,9 +85,13 @@ class _AddTodoPageState extends State<AddTodoPage> {
           SizedBox(height: 20,),
           ElevatedButton(
               onPressed: (){
-                submitData();
+                // if isEdit=true updateData(), else submitData()
+                isEdit ? updateData() : submitData();
               },
-              child: Text('Submit')
+              child: Text(
+                isEdit? "Update": 'Submit', // if isEdit=true set button as Update", else set button as "Submit"
+
+              )
           ),
         ],
       ),
@@ -117,6 +144,61 @@ class _AddTodoPageState extends State<AddTodoPage> {
     catch(e){
       print("-----> ERROR OCCURRED: ${e}");
       showErrorMessage("Error occurred while creating.\n i.e. $e");
+
+    }
+  }
+
+  Future<void> updateData() async {
+
+    final student = widget.student;
+    if (student == null){
+      print("You can not call update without todo data");
+      showErrorMessage("You can not call update without todo data");
+      return;
+    }
+
+    int id = student['id'] as int;
+    //get data from form
+    final name  = titleController.text;
+    final description  = descriptionController.text;
+    final age  = ageController.text;
+
+    final body = {
+      "name": name,
+      "age": age,
+    };
+
+    //submit the data to the server.
+    //final url = 'http://api.nstack.in/v1/todos';
+    final url = '${Constants.BASE_URL}/update/$id';
+    final uri = Uri.parse(url);
+    final response = await http.put(
+        uri,
+        body: jsonEncode(body),
+        headers: {"accept":"application/json", "Content-Type":"application/json"}
+    );
+
+    try{
+      final json = jsonDecode(response.body) as Map;
+      print(json['code']);
+
+      if(json['code'] == 200){
+
+        final result = json['data'] as Map;
+
+        showSuccessMessage(' $name updated Successfully');
+        print("----->SUCCESS RESPONSE, UPDATED STUDENT: ${result}");
+
+      }
+      else{
+        showErrorMessage("Error occurred while updating.");
+        print("----->ERROR: Data updating failed");
+
+      }
+    }
+    catch(e){
+      print("-----> ERROR OCCURRED: ${e}");
+      showErrorMessage("Error occurred while updating.\n i.e. $e");
 
     }
   }
