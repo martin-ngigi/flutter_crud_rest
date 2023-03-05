@@ -3,9 +3,11 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_crud_rest/services/students_services.dart';
 import 'package:http/http.dart' as http;
 
 import '../constants/constants.dart';
+import '../utils/snackbar_helper.dart';
 
 class AddTodoPage extends StatefulWidget {
   Map? student;
@@ -109,43 +111,24 @@ class _AddTodoPageState extends State<AddTodoPage> {
       "age": age,
     };
 
-    //submit the data to the server.
-    //final url = 'http://api.nstack.in/v1/todos';
-    final url = '${Constants.BASE_URL}/create';
-    final uri = Uri.parse(url);
-    final response = await http.post(
-        uri,
-        body: jsonEncode(body),
-        headers: {"accept":"application/json", "Content-Type":"application/json"}
-    );
+    final successBody = await StudentService.addStudent(body);
+    //print("successBody-----$successBody");
+    if(successBody['code']== 201){
+      //   //clear UI
+      titleController.clear();
+      descriptionController.clear();
+      ageController.clear();
 
-    try{
-      final json = jsonDecode(response.body) as Map;
-      print(json['code']);
+      final result = successBody['data'] as Map;
 
-      if(json['code'] == 201){
-        //   //clear UI
-          titleController.clear();
-          descriptionController.clear();
-          ageController.clear();
-
-        final result = json['data'] as Map;
-
-        showSuccessMessage('Creation of $name Success');
-        print("----->SUCCESS RESPONSE, ADDED STUDENT: ${result}");
-
-      }
-      else{
-        showErrorMessage("Error occurred while creating.");
-        print("----->ERROR: Data creation failed");
-
-      }
+      showSuccessMessage(context, message: 'Creation of ${result['name']} Success');
+      print("---------CREATION SUCCESS... BODY : ${result['name']}");
     }
-    catch(e){
-      print("-----> ERROR OCCURRED: ${e}");
-      showErrorMessage("Error occurred while creating.\n i.e. $e");
-
+    else{
+      showErrorMessage(context, message: "Error occurred while creating.");
+      print("----->ERROR: Data creation failed");
     }
+
   }
 
   Future<void> updateData() async {
@@ -153,7 +136,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
     final student = widget.student;
     if (student == null){
       print("You can not call update without todo data");
-      showErrorMessage("You can not call update without todo data");
+      showErrorMessage(context, message: "You can not call update without todo data");
       return;
     }
 
@@ -167,55 +150,14 @@ class _AddTodoPageState extends State<AddTodoPage> {
       "name": name,
       "age": age,
     };
+    final isSuccess = await StudentService.updateData(id, body);
 
-    //submit the data to the server.
-    //final url = 'http://api.nstack.in/v1/todos';
-    final url = '${Constants.BASE_URL}/update/$id';
-    final uri = Uri.parse(url);
-    final response = await http.put(
-        uri,
-        body: jsonEncode(body),
-        headers: {"accept":"application/json", "Content-Type":"application/json"}
-    );
-
-    try{
-      final json = jsonDecode(response.body) as Map;
-      print(json['code']);
-
-      if(json['code'] == 200){
-
-        final result = json['data'] as Map;
-
-        showSuccessMessage(' $name updated Successfully');
-        print("----->SUCCESS RESPONSE, UPDATED STUDENT: ${result}");
-
-      }
-      else{
-        showErrorMessage("Error occurred while updating.");
-        print("----->ERROR: Data updating failed");
-
-      }
+    if (isSuccess){
+      showSuccessMessage(context, message: "$name Updated successfully.");
     }
-    catch(e){
-      print("-----> ERROR OCCURRED: ${e}");
-      showErrorMessage("Error occurred while updating.\n i.e. $e");
-
+    else{
+      showErrorMessage(context, message: "Failed to update $name");
     }
   }
 
-  void showSuccessMessage(String message){
-    final snackBar = SnackBar(content: Text(message));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  void showErrorMessage(String message){
-    final snackBar = SnackBar(
-      content: Text(
-        message,
-        style: TextStyle(color: Colors.white),
-      ),
-      backgroundColor: Colors.red,
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
 }

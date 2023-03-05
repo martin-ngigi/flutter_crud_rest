@@ -11,7 +11,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_crud_rest/constants/constants.dart';
 import 'package:flutter_crud_rest/screens/add_page.dart';
+import 'package:flutter_crud_rest/services/students_services.dart';
 import 'package:http/http.dart' as http;
+
+import '../utils/snackbar_helper.dart';
 
 class TodoListPage extends StatefulWidget {
   const TodoListPage({Key? key}) : super(key: key);
@@ -28,6 +31,46 @@ class _TodoListPageState extends State<TodoListPage> {
     // TODO: implement initState
     super.initState();
     fetchTodo();
+  }
+
+  Widget _buildCard(int index, Map item, int id){
+    /**
+     * If we were to pass functions
+     */
+    //final Function(Map) navigateEdit;
+    //final Function(int) deleteById;
+
+    return Card(
+      child: ListTile(
+        leading: CircleAvatar(child: Text("${index+1}"),),
+        title: Text(item['name']),
+        subtitle: Text(item['age'].toString()),
+        trailing: PopupMenuButton(
+          itemBuilder: (context){
+            return [
+              PopupMenuItem(
+                child: Text("Edit"),
+                value: "edit",
+              ),
+              PopupMenuItem(
+                child: Text("Delete"),
+                value: "delete",
+              ),
+            ];
+          },
+          onSelected: (value){
+            if(value == 'edit' ){
+              //navigate to edit page
+              navigateToEditPage(item);
+            }
+            else if (value == 'delete'){
+              //delete and remove the item
+              deleteById(id);
+            }
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -52,41 +95,23 @@ class _TodoListPageState extends State<TodoListPage> {
           onRefresh: (){
             return fetchTodo();
           },
-          child: ListView.builder(
-              itemCount: items.length,
-              itemBuilder: (context, index){
-                final item  = items[index] as Map;
-                final id  = item['id'] as int;
-                return ListTile(
-                  leading: CircleAvatar(child: Text("${index+1}"),),
-                  title: Text(item['name']),
-                  subtitle: Text(item['age'].toString()),
-                  trailing: PopupMenuButton(
-                    itemBuilder: (context){
-                      return [
-                        PopupMenuItem(
-                          child: Text("Edit"),
-                          value: "edit",
-                        ),
-                        PopupMenuItem(
-                          child: Text("Delete"),
-                          value: "delete",
-                        ),
-                      ];
-                    },
-                    onSelected: (value){
-                      if(value == 'edit' ){
-                        //navigate to edit page
-                        navigateToEditPage(item);
-                      }
-                      else if (value == 'delete'){
-                        //delete and remove the item
-                        deleteById(id);
-                      }
-                    },
-                  ),
-                );
-              }
+          child: Visibility(
+            visible: items.isNotEmpty,
+              replacement: Center(
+                child: Text(
+                    "No students in list",
+                  style: Theme.of(context).textTheme.headline3,
+                ),
+              ),
+            child: ListView.builder(
+                itemCount: items.length,
+                padding: EdgeInsets.all(8),
+                itemBuilder: (context, index){
+                  final item  = items[index] as Map;
+                  final id  = item['id'] as int;
+                  return _buildCard(index, item, id);
+                }
+            ),
           ),
         ),
       ),
@@ -122,28 +147,20 @@ class _TodoListPageState extends State<TodoListPage> {
   }
 
   Future<void> fetchTodo() async {
-    final url = Constants.BASE_URL+"/all";
-    final uri = Uri.parse(url);
-    final response = await http.get(
-        uri,
-        headers: {"accept":"application/json"}
-    );
-    final json = jsonDecode(response.body) as Map;
-    //print(json['code']);
 
-    if(json['code'] == 200){
-      final result = json['data'] as List;
+    final response  =  await StudentService.fetchTodo();
 
+    if(response != null){
       setState(() {
-        items = result;
+        items = response;
       });
 
-      print("----->SUCCESS RESPONSE, ALL TODOS: ${result}");
+      print("----->SUCCESS RESPONSE, ALL STUDENTS: ${response}");
 
     }
     else{
-      print("-----> ERROR OCCURRED WHILE FETCHING ALL TODOS");
-
+      print("-----> ERROR OCCURRED WHILE FETCHING ALL STUDENTS");
+      showErrorMessage(context, message: "ERROR OCCURRED WHILE FETCHING ALL STUDENTS");
     }
 
     setState(() {
@@ -154,47 +171,23 @@ class _TodoListPageState extends State<TodoListPage> {
 
   Future<void> deleteById(int id) async {
     //delete item
-    final url = '${Constants.BASE_URL}/delete/$id';
-    final uri = Uri.parse(url);
-    final response = await http.delete(
-        uri,
-        headers: {"accept":"application/json"}
-    );
-    final json = jsonDecode(response.body) as Map;
-    print(json['code']);
-
-    if(json['code'] == 200){
+    final isSuccess = await StudentService.deleteById(id);
+    if(isSuccess){
       //show all items apart from item which id is not egual to deletef item
       final filtered = items.where((element) => element['id'] != id).toList();
       setState(() {
         items = filtered;
       });
 
-      showSuccessMessage("SUCCESS RESPONSE, STUDENT DELETED");
+      showSuccessMessage(context, message: "SUCCESS RESPONSE, STUDENT DELETED");
       print("----->SUCCESS RESPONSE, STUDENT DELETED");
 
     }
     else{
-      showErrorMessage("ERROR OCCURRED WHILE DELETING STUDENT");
+      showErrorMessage(context, message:  "ERROR OCCURRED WHILE DELETING STUDENT",);
       print("-----> ERROR OCCURRED WHILE DELETING STUDENT");
 
     }
-    //remove the item from list
   }
 
-  void showSuccessMessage(String message){
-    final snackBar = SnackBar(content: Text(message));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  void showErrorMessage(String message){
-    final snackBar = SnackBar(
-      content: Text(
-        message,
-        style: TextStyle(color: Colors.white),
-      ),
-      backgroundColor: Colors.red,
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
 }
