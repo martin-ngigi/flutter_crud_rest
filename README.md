@@ -1,17 +1,16 @@
 # flutter_crud_rest
+- Simple REST CRUD Operation applicattion
+- Link to the api: https://github.com/martin-ngigi/flutter_crud_rest
 
-Flutter app the makes http request such as GET, POST, PUT, DELETE from a rest api that is developed in laravel (pph)_
+# Screenshots
+1. Get all students
+- ![Get](images/get.png)
 
-## Getting Started
-- Running the app in web:
- ```
-  flutter run -d chrome
- ```
-## Pre-requisites
-- Install any apache + PHP + MySQL stack (XAMPP/ WAMP)
-- Flutter installation. (Android Studio / VS Code)
+2. Add student
+- ![Post](images/post.png)
 
-## LINKS :
-- [Flutter CRUD documentation](https://medium.com/app-dev-community/flutter-crud-application-using-php-rest-api-bb585c4d7d9c)
+3. Update a student
+- ![Put](images/put.png)
 
-
+4. Options all students
+- ![options](images/options.png)
